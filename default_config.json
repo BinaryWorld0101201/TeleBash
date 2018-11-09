@@ -1,0 +1,19 @@
+{
+  "bot_token": "dfsdf",
+  "bot_commands":
+  [
+    {
+      "telegram_cmd": "/start",
+      "bash_cmd":
+      {
+        "use_sudo": false,
+        "cmd": "uname",
+        "args":
+        [
+          "-r"
+        ]
+      },
+      "description": "Shows short kernel info"
+    }
+  ]
+}
