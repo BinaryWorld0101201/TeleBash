@@ -1,9 +1,10 @@
 {
-  "bot_token": "dfsdf",
+  "bot_token": "", // Your bot token from BotFather,
+  "chat_id": "", // User id
   "bot_commands":
   [
     {
-      "telegram_cmd": "/start",
+      "telegram_cmd": "uname",
       "bash_cmd":
       {
         "use_sudo": false,
