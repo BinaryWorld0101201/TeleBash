@@ -1,11 +1,37 @@
+import json
 from telegram.bot import Bot
+from telegram.ext import Updater, CommandHandler
+
+import logging
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class TeleBashBot(Bot):
-
     def __init__(self, config):
-        self.config = config
-        super().__init__(self.token)
+        self.config = {}
+        self.load_config(config)
+        self.updater = Updater(self.config['bot_token'])
+        self.add_handlers()
+
+    def add_handlers(self):
+        for cmd in self.config['bot_commands']:
+            self.updater.dispatcher.add_handler(CommandHandler(cmd['telegram_cmd'],
+                                                              lambda bot, update:
+                                                              update.message.reply_text(cmd['description'])))
+
+    def run(self):
+        self.updater.start_polling()
+        self.updater.idle()
+
+    def load_config(self, config):
+        try:
+            with open(config) as config:
+                self.config = json.load(config)
+        except FileNotFoundError:
+            print('File does not exist')
 
     def send_message(self,
                      chat_id,
