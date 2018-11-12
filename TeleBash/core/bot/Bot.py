@@ -17,10 +17,13 @@ def cmd_runner(command):
 class TeleBashBot(Bot):
     def __init__(self, config):
         self.config = {}
-        self.load_config(config)
-        self.updater = Updater(self.config['bot_token'])
-        self.current_cmd_number = -1
-        self.add_handlers()
+        try:
+            self.load_config(config)
+            self.updater = Updater(self.config['bot_token'])
+            self.current_cmd_number = -1
+            self.add_handlers()
+        except FileNotFoundError:
+            print('File does not exist')
 
     def add_handlers(self):
         for cmd in self.config['bot_commands']:
@@ -41,8 +44,5 @@ class TeleBashBot(Bot):
         self.updater.idle()
 
     def load_config(self, config):
-        try:
-            with open(config) as config:
-                self.config = json.load(config)
-        except FileNotFoundError:
-            print('File does not exist')
+        with open(config) as config:
+            self.config = json.load(config)
