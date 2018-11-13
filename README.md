@@ -2,7 +2,7 @@
 
 ## Installation
 
-Download the repo & simply run: `pip3 install -r requirements.txt`
+Download the repo & simply run: `python setup.py install`
 
 ## Using
 Just set up your config file like following:
