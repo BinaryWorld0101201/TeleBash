@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='TeleBash',
-    version='0.0.1',
+    version='0.1.1',
     packages=find_packages(exclude='tests'),
     install_requires=['python-telegram-bot == 11.1.0'],
     url='https://github.com/sadmonad/TeleBash',

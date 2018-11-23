@@ -3,7 +3,7 @@ import subprocess
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.bot import Bot
-from telegram.ext import Updater, CommandHandler
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 
 import logging
 
@@ -38,18 +38,26 @@ class TeleBashBot:
             cmd = {'cmd_type': 'bash_command', 'cmd': current_cmd, 'args': ' '.join(current_cmd_args)}
         return cmd
 
+    def get_button_cmd(self, button_callback):
+        parsed_cmd = json.loads(button_callback)
+        cmd = {'cmd': parsed_cmd['cmd'], 'args': ' '.join(parsed_cmd['args'])}
+        return cmd
+
     def add_handlers(self):
         for cmd in self.config['bot_commands']:
-            handler = None
             pass_user_data = True
             if cmd['type'] == 'tg_cmd':
-                handler = self.handler
                 pass_user_data = True
+                self.updater.dispatcher.add_handler(
+                    CommandHandler(cmd['telegram_cmd'], self.handler, pass_user_data=pass_user_data))
             elif cmd['type'] == 'tg_keyboard':
-                handler = self.keyboard_layout_handler
                 pass_user_data = False
+                self.updater.dispatcher.add_handler(
+                    CommandHandler(cmd['telegram_cmd'], self.keyboard_layout_handler, pass_user_data=pass_user_data))
 
-            self.updater.dispatcher.add_handler(CommandHandler(cmd['telegram_cmd'], handler, pass_user_data=pass_user_data))
+                for btn in cmd['buttons']:
+                    self.updater.dispatcher.add_handler(
+                        CallbackQueryHandler(self.keyboard_action_handler, pass_user_data=True))
 
     def handler(self, bot, update, user_data):
         cmd = self.get_current_cmd(update.message.text)
@@ -60,12 +68,18 @@ class TeleBashBot:
         cmd = self.get_current_cmd(update.message.text)
 
         keyboard = [
-            [InlineKeyboardButton(btn['caption'], callback_data='1') for btn in cmd['buttons']]
+            [InlineKeyboardButton(btn['caption'], callback_data=json.dumps(btn['action']['bash_cmd'])) for btn in cmd['buttons']]
         ]
 
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         update.message.reply_text('Available commands: ', reply_markup=reply_markup)
+
+    def keyboard_action_handler(self, bot, update, user_data):
+        query = update.callback_query
+        cmd = self.get_button_cmd(query.data)
+        user_data['cmd_result'] = cmd_runner(cmd)
+        bot.send_message(text=user_data['cmd_result'], chat_id=query.message.chat_id)
 
     def run(self):
         self.updater.start_polling()

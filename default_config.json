@@ -1,20 +1,54 @@
 {
-  "bot_token": "", // Your bot token from BotFather,
-  "chat_id": "", // User id
+  "bot_token": "" ,
+  "chat_id": "",
   "bot_commands":
   [
     {
-      "telegram_cmd": "uname",
+      "type": "tg_keyboard",
+      "telegram_cmd": "start",
+      "buttons":
+      [
+        {
+          "caption": "Kernel",
+          "action":
+          {
+            "type": "tg_cmd",
+            "telegram_cmd": "kernel",
+            "bash_cmd":
+            {
+              "use_sudo": false,
+              "cmd": "uname",
+              "args": ["-r"]
+            }
+          }
+        },
+        {
+          "caption": "Files",
+          "action":
+          {
+            "type": "tg_cmd",
+            "telegram_cmd": "files",
+            "bash_cmd":
+            {
+              "use_sudo": false,
+              "cmd": "ls",
+              "args": ["-l"]
+            }
+          }
+        }
+      ],
+      "description": "Shows short kernel info"
+    },
+    {
+      "type": "tg_cmd",
+      "telegram_cmd": "moo",
       "bash_cmd":
       {
         "use_sudo": false,
-        "cmd": "uname",
-        "args":
-        [
-          "-r"
-        ]
+        "cmd": "apt-get",
+        "args": ["moo"]
       },
-      "description": "Shows short kernel info"
+      "description": "Shows cow"
     }
   ]
 }
