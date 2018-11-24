@@ -11,6 +11,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+PERMISSION_DENIED_MSG = 'Permission denied'
+
 
 def cmd_runner(command):
     return subprocess.run([command['cmd'], command['args']], stdout=subprocess.PIPE).stdout.decode('utf-8')
@@ -25,6 +27,9 @@ class TeleBashBot:
             self.add_handlers()
         except FileNotFoundError:
             print('File does not exist')
+
+    def user_is_owner(self, user_id):
+        return self.config['user_id'] == user_id
 
     def get_current_cmd(self, user_text):
         cmd = list(filter(lambda cmd: cmd['telegram_cmd'] == user_text.replace('/', ''), self.config['bot_commands']))
@@ -60,26 +65,35 @@ class TeleBashBot:
                         CallbackQueryHandler(self.keyboard_action_handler, pass_user_data=True))
 
     def handler(self, bot, update, user_data):
-        cmd = self.get_current_cmd(update.message.text)
-        user_data['cmd_result'] = cmd_runner(cmd)
-        update.message.reply_text(user_data['cmd_result'])
+        if self.user_is_owner(update.message.from_user.id):
+            cmd = self.get_current_cmd(update.message.text)
+            user_data['cmd_result'] = cmd_runner(cmd)
+            update.message.reply_text(user_data['cmd_result'])
+        else:
+            update.message.reply_text(PERMISSION_DENIED_MSG)
 
     def keyboard_layout_handler(self, bot, update):
-        cmd = self.get_current_cmd(update.message.text)
+        if self.user_is_owner(update.message.from_user.id):
+            cmd = self.get_current_cmd(update.message.text)
 
-        keyboard = [
-            [InlineKeyboardButton(btn['caption'], callback_data=json.dumps(btn['action']['bash_cmd'])) for btn in cmd['buttons']]
-        ]
+            keyboard = [
+                [InlineKeyboardButton(btn['caption'], callback_data=json.dumps(btn['action']['bash_cmd']))
+                 for btn in cmd['buttons']]
+            ]
+            reply_markup = InlineKeyboardMarkup(keyboard)
 
-        reply_markup = InlineKeyboardMarkup(keyboard)
-
-        update.message.reply_text('Available commands: ', reply_markup=reply_markup)
+            update.message.reply_text('Available commands: ', reply_markup=reply_markup)
+        else:
+            update.message.reply_text(PERMISSION_DENIED_MSG)
 
     def keyboard_action_handler(self, bot, update, user_data):
         query = update.callback_query
-        cmd = self.get_button_cmd(query.data)
-        user_data['cmd_result'] = cmd_runner(cmd)
-        bot.send_message(text=user_data['cmd_result'], chat_id=query.message.chat_id)
+        if self.user_is_owner(update.message.from_user.id):
+            cmd = self.get_button_cmd(query.data)
+            user_data['cmd_result'] = cmd_runner(cmd)
+            bot.send_message(text=user_data['cmd_result'], chat_id=query.message.chat_id)
+        else:
+            bot.send_message(text=PERMISSION_DENIED_MSG, chat_id=query.message.chat_id)
 
     def run(self):
         self.updater.start_polling()

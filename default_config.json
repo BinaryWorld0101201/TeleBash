@@ -1,6 +1,6 @@
 {
   "bot_token": "" ,
-  "chat_id": "",
+  "user_id": "",
   "bot_commands":
   [
     {
