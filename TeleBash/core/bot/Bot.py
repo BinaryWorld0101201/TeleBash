@@ -1,11 +1,12 @@
 import json
 import subprocess
+import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.bot import Bot
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 
-import logging
+from ..exceptions import ConfigUniqueTelegramCommandsError
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -23,10 +24,24 @@ class TeleBashBot:
         self.config = {}
         try:
             self.load_config(config)
+            self.validate_config()
             self.updater = Updater(self.config['bot_token'])
             self.add_handlers()
         except FileNotFoundError:
             print('File does not exist')
+        except ConfigUniqueTelegramCommandsError as e:
+            print(f'TeleBash config must contain only unique commands. Duplicate command: {e.cmd}')
+            exit(1)
+
+    def validate_config(self):
+        exist = []
+        for cmd in self.config['bot_commands']:
+            if cmd['telegram_cmd'] not in exist:
+                exist.append(cmd['telegram_cmd'])
+            else:
+                raise ConfigUniqueTelegramCommandsError(
+                    'Config must contain only unique telegram commands', cmd['telegram_cmd'])
+        pass
 
     def user_is_owner(self, user_id):
         return self.config['user_id'] == user_id

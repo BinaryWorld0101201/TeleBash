@@ -1,0 +1,54 @@
+{
+  "bot_token": "" ,
+  "user_id": "",
+  "bot_commands":
+  [
+    {
+      "type": "tg_keyboard",
+      "telegram_cmd": "start",
+      "buttons":
+      [
+        {
+          "caption": "Kernel",
+          "action":
+          {
+            "type": "tg_cmd",
+            "telegram_cmd": "kernel",
+            "bash_cmd":
+            {
+              "use_sudo": false,
+              "cmd": "uname",
+              "args": ["-r"]
+            }
+          }
+        },
+        {
+          "caption": "Files",
+          "action":
+          {
+            "type": "tg_cmd",
+            "telegram_cmd": "files",
+            "bash_cmd":
+            {
+              "use_sudo": false,
+              "cmd": "ls",
+              "args": ["-l"]
+            }
+          }
+        }
+      ],
+      "description": "Shows short kernel info"
+    },
+    {
+      "type": "tg_cmd",
+      "telegram_cmd": "start",
+      "bash_cmd":
+      {
+        "use_sudo": false,
+        "cmd": "apt-get",
+        "args": ["moo"]
+      },
+      "description": "Shows cow"
+    }
+  ]
+}
